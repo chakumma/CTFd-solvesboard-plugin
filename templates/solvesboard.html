@@ -1,0 +1,104 @@
+{% extends "base.html" %}
+{% set is_core_beta = Configs.ctf_theme == "core-beta" %}
+
+{% block stylesheets %}
+  {{ super() }}
+  <link rel="stylesheet" href="{{ url_for("plugins.solvesboard.assets", path="css/solvesboard.css") }}">
+{% endblock %}
+
+{% block content %}
+  <div class="jumbotron">
+    <div class="container">
+      <h1>Solvesboard</h1>
+    </div>
+  </div>
+  <div class="container">
+    <div class="row">
+      <div class="col-md-12">
+        <div class="{{ "mb-3" if is_core_beta else "form-group" }}">
+          <select
+              id="solvesboard-category-select"
+              class="{{ "form-select" if is_core_beta else "form-control" }}"
+              aria-label="Filter by category"
+          >
+            <option value="" selected>
+              ALL
+            </option>
+            {% for category in challenges | map(attribute="category") | unique | list %}
+              <option>{{ category }}</option>
+            {% endfor %}
+          </select>
+        </div>
+      </div>
+    </div>
+    {% if Configs.user_mode == UserModeTypes.USERS %}
+      {% with is_team = False, standings = user_standings, first_blood = user_first_blood %}
+        {% include "solvesboard_matrix.html" %}
+      {% endwith %}
+    {% else %}
+      <div class="row pb-4">
+        <div class="col-md-12">
+          <ul class="nav nav-tabs nav-fill" role="tablist">
+            <li class="nav-item">
+              <a
+                  id="solvesboard-teams-tab"
+                  class="nav-link active"
+                  {% if is_core_beta %} data-bs-toggle="tab" {% else %} data-toggle="tab" {% endif %}
+                  href="#solvesboard-teams-pane"
+                  role="tab"
+                  aria-controls="solvesboard-teams-pane"
+                  aria-selected="true"
+              >
+                Teams
+              </a>
+            </li>
+            <li class="nav-item">
+              <a
+                  id="solvesboard-users-tab"
+                  class="nav-link"
+                  {% if is_core_beta %} data-bs-toggle="tab" {% else %} data-toggle="tab" {% endif %}
+                  href="#solvesboard-users-pane"
+                  role="tab"
+                  aria-controls="solvesboard-users-pane"
+                  aria-selected="false"
+              >
+                Users
+              </a>
+            </li>
+          </ul>
+        </div>
+      </div>
+      <div class="row">
+        <div class="col-md-12">
+          <div class="tab-content">
+            <div
+                id="solvesboard-teams-pane"
+                class="tab-pane fade show active"
+                role="tabpanel"
+                aria-labelledby="solvesboard-teams-tab"
+            >
+              {% with is_team = True, standings = team_standings, first_blood = team_first_blood %}
+                {% include "solvesboard_matrix.html" %}
+              {% endwith %}
+            </div>
+            <div
+                id="solvesboard-users-pane"
+                class="tab-pane fade"
+                role="tabpanel"
+                aria-labelledby="solvesboard-users-tab"
+            >
+              {% with is_team = False, standings = user_standings, first_blood = user_first_blood %}
+                {% include "solvesboard_matrix.html" %}
+              {% endwith %}
+            </div>
+          </div>
+        </div>
+      </div>
+    {% endif %}
+  </div>
+{% endblock %}
+
+{% block scripts %}
+  {{ super() }}
+  <script defer src="{{ url_for("plugins.solvesboard.assets", path="js/solvesboard.js") }}"></script>
+{% endblock %}

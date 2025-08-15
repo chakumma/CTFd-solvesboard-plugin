@@ -1,0 +1,60 @@
+<div class="table-responsive">
+  <table class="table table-striped align-middle">
+    <thead>
+      <tr>
+        <th class="text-center solvesboard-fit-column" scope="col">
+          Place
+        </th>
+        <th class="ps-3 text-start" scope="col">
+          {{ "Team" if is_team else "User" }}
+        </th>
+        <th scope="col">
+          Score
+        </th>
+        {% for challenge in challenges %}
+          <th class="text-center" data-category="{{ challenge.category }}" scope="col">
+            <div class="d-inline-block solvesboard-vertical-challenge-name">
+              {{ challenge.name }}
+            </div>
+          </th>
+        {% endfor %}
+      </tr>
+    </thead>
+    <tbody>
+      {% for standing in standings %}
+        <tr data-solver-id="{{ standing.solver_id }}">
+          <th class="text-center solvesboard-fit-column" scope="row">
+            {{ loop.index }}
+          </th>
+          <td class="text-start">
+            {% if is_team %}
+              {% set solver_url = url_for("teams.public", team_id=standing.solver_id) %}
+            {% else %}
+              {% set solver_url = url_for("users.public", user_id=standing.solver_id) %}
+            {% endif %}
+            <a href="{{ solver_url }}">
+              {{ standing.solver_name }}
+            </a>
+          </td>
+          <td data-score>
+            {{ standing.score }}
+          </td>
+          {% for challenge in challenges %}
+            {% set is_solved = challenge.id in standing.solved_ids %}
+            <td
+                class="text-center"
+                data-category="{{ challenge.category }}"
+                data-value="{{ challenge.value if is_solved else 0 }}"
+            >
+              {% if first_blood.get(challenge.id) == standing.solver_id %}
+                <i class="fa fa-crown text-warning" aria-label="First blood"></i>
+              {% elif is_solved %}
+                <i class="fa fa-check text-success" aria-label="Solved"></i>
+              {% endif %}
+            </td>
+          {% endfor %}
+        </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
